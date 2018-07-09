@@ -4,11 +4,11 @@ RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
 
 #Adding packages for SSH for Azure
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends openssh-server \
-    && echo "root:Docker!" | chpasswd
+#RUN apt-get update \
+#    && apt-get install -y --no-install-recommends openssh-server \
+#    && echo "root:Docker!" | chpasswd
 
-COPY sshd_config /etc/ssh/
+#COPY sshd_config /etc/ssh/
 
 #End Azure changes
 ARG user=jenkins
@@ -64,6 +64,20 @@ ENV JENKINS_UC https://updates.jenkins.io
 ENV JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental
 RUN chown -R ${user} "$JENKINS_HOME" /usr/share/jenkins/ref
 
+USER root
+#Adding SSH after jenkins user has been set
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends openssh-server \
+    && echo "root:Docker!" | chpasswd
+
+COPY sshd_config /etc/ssh/
+
+
+RUN mkdir /run/sshd
+#RUN chown -R ${user} /run/sshd
+#RUN chown -R ${user} /etc/ssh
+
+
 # for main web interface:
 EXPOSE ${http_port}
 
@@ -75,7 +89,7 @@ EXPOSE 2222
 
 ENV COPY_REFERENCE_FILE_LOG $JENKINS_HOME/copy_reference_file.log
 
-USER ${user}
+#USER ${user}
 
 COPY jenkins-support /usr/local/bin/jenkins-support
 COPY jenkins.sh /usr/local/bin/jenkins.sh
